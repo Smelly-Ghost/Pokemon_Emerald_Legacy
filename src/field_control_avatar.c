@@ -133,6 +133,13 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
         input->dpadDirection = DIR_WEST;
     else if (heldKeys & DPAD_RIGHT)
         input->dpadDirection = DIR_EAST;
+
+        // Toggle Auto-Run when B is pressed on foot
+    if ((newKeys & B_BUTTON) && (!ArePlayerFieldControlsLocked())
+    && (gPlayerAvatar.flags & (PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_ON_FOOT)))
+    {
+        gRunToggleBtnSet = TRUE;
+    }
 }
 
 int ProcessPlayerFieldInput(struct FieldInput *input)

@@ -289,7 +289,16 @@ static void ReadKeys(void)
             // Turbo A only on the overworld callback
             if (gMain.callback2 == CB2_Overworld)
             {
-                gMain.newKeys ^= A_BUTTON;
+                // Fire a new 'A' press only once every 8 frames
+                if (gMain.vblankCounter1 % 8 == 0)
+                {
+                    gMain.newKeys |= A_BUTTON;
+                }
+                else
+                {
+                    // Ensure the 'A' press is completely cleared on the in-between frames
+                    gMain.newKeys &= ~A_BUTTON; 
+                }
             }
         }
 

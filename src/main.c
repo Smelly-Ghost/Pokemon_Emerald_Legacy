@@ -300,6 +300,20 @@ static void ReadKeys(void)
                     gMain.newKeys &= ~A_BUTTON; 
                 }
             }
+            // Slower Turbo A during battles
+            else if (gMain.inBattle)
+            {
+                // Fire a new 'A' press only once every 16 frames (~3.75 presses/sec)
+                if (gMain.vblankCounter1 % 16 == 0)
+                {
+                    gMain.newKeys |= A_BUTTON;
+                }
+                else
+                {
+                    // Ensure the 'A' press is completely cleared on the in-between frames
+                    gMain.newKeys &= ~A_BUTTON; 
+                }
+            }
         }
 
         if (JOY_NEW(gMain.watchedKeysMask))

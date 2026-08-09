@@ -317,8 +317,8 @@ static void ReadKeys(void)
                     gMain.newKeys &= ~A_BUTTON; 
                 }
             }
-            // Slower Turbo A during battles
-            else if (gMain.inBattle)
+            // Slower Turbo A during battles, but not while a deliberate choice is being made
+            else if (gMain.inBattle && !IsPlayerAwaitingBattleChoice())
             {
                 // Fire a new 'A' press only once every 16 frames (~3.75 presses/sec)
                 if (gMain.vblankCounter1 % 16 == 0)

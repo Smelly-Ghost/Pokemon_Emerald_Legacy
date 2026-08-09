@@ -256,6 +256,7 @@ void Task_PlayerController_RestoreBgmAfterCry(u8 taskId);
 void ActionSelectionCreateCursorAt(u8 cursorPos, u8 unused);
 void ActionSelectionDestroyCursorAt(u8 cursorPos);
 void InitMoveSelectionsVarsAndStrings(void);
+bool8 IsPlayerAwaitingBattleChoice(void);
 
 // recorded player controller
 void SetControllerToRecordedPlayer(void);

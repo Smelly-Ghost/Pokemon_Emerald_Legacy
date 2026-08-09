@@ -2674,6 +2674,26 @@ static void PlayerHandleYesNoBox(void)
     }
 }
 
+bool8 IsPlayerAwaitingBattleChoice(void)
+{
+    u32 i;
+
+    for (i = 0; i < MAX_BATTLERS_COUNT; i++)
+    {
+        if (gBattlerControllerFuncs[i] == PlayerHandleYesNoInput
+         || gBattlerControllerFuncs[i] == PlayerHandleYesNoBox
+         || gBattlerControllerFuncs[i] == WaitForMonSelection
+         || gBattlerControllerFuncs[i] == OpenBagAndChooseItem
+         || gBattlerControllerFuncs[i] == CompleteWhenChoseItem
+         || gBattlerControllerFuncs[i] == HandleInputChooseTarget)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 static void HandleChooseMoveAfterDma3(void)
 {
     if (!IsDma3ManagerBusyWithBgCopy())

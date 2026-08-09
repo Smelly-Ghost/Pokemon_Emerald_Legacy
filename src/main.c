@@ -295,40 +295,44 @@ static void ReadKeys(void)
         {
             gMain.heldKeys |= A_BUTTON;
 
-            // Turbo A only on the overworld callback, and not while a menu/prompt is waiting on a deliberate choice
-            if (gMain.callback2 == CB2_Overworld
-                && !FuncIsActiveTask(Task_ShowStartMenu)
-                && !IsShopMenuActive()
-                && !IsScriptMenuWaitingForChoice()
-                && !IsYesNoMenuActive()
-                && !IsApprenticeChoosingAnswer()
-                && !IsScrollableMultichoiceActive()
-                && !IsDecorationMenuActive()
-                && !IsSecretBaseRegistryMenuActive())
+            // Turbo A can be disabled independently of L=A button mode via the options menu
+            if (gSaveBlock2Ptr->optionsTurboA)
             {
-                // Fire a new 'A' press only once every 8 frames
-                if (gMain.vblankCounter1 % 8 == 0)
+                // Turbo A only on the overworld callback, and not while a menu/prompt is waiting on a deliberate choice
+                if (gMain.callback2 == CB2_Overworld
+                    && !FuncIsActiveTask(Task_ShowStartMenu)
+                    && !IsShopMenuActive()
+                    && !IsScriptMenuWaitingForChoice()
+                    && !IsYesNoMenuActive()
+                    && !IsApprenticeChoosingAnswer()
+                    && !IsScrollableMultichoiceActive()
+                    && !IsDecorationMenuActive()
+                    && !IsSecretBaseRegistryMenuActive())
                 {
-                    gMain.newKeys |= A_BUTTON;
+                    // Fire a new 'A' press only once every 8 frames
+                    if (gMain.vblankCounter1 % 8 == 0)
+                    {
+                        gMain.newKeys |= A_BUTTON;
+                    }
+                    else
+                    {
+                        // Ensure the 'A' press is completely cleared on the in-between frames
+                        gMain.newKeys &= ~A_BUTTON;
+                    }
                 }
-                else
+                // Slower Turbo A during battles, but not while a deliberate choice is being made
+                else if (gMain.inBattle && !IsPlayerAwaitingBattleChoice())
                 {
-                    // Ensure the 'A' press is completely cleared on the in-between frames
-                    gMain.newKeys &= ~A_BUTTON; 
-                }
-            }
-            // Slower Turbo A during battles, but not while a deliberate choice is being made
-            else if (gMain.inBattle && !IsPlayerAwaitingBattleChoice())
-            {
-                // Fire a new 'A' press only once every 16 frames (~3.75 presses/sec)
-                if (gMain.vblankCounter1 % 16 == 0)
-                {
-                    gMain.newKeys |= A_BUTTON;
-                }
-                else
-                {
-                    // Ensure the 'A' press is completely cleared on the in-between frames
-                    gMain.newKeys &= ~A_BUTTON; 
+                    // Fire a new 'A' press only once every 16 frames (~3.75 presses/sec)
+                    if (gMain.vblankCounter1 % 16 == 0)
+                    {
+                        gMain.newKeys |= A_BUTTON;
+                    }
+                    else
+                    {
+                        // Ensure the 'A' press is completely cleared on the in-between frames
+                        gMain.newKeys &= ~A_BUTTON;
+                    }
                 }
             }
         }

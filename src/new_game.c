@@ -96,6 +96,8 @@ static void SetDefaultOptions(void)
     gSaveBlock2Ptr->optionsBattleStyle = OPTIONS_BATTLE_STYLE_SHIFT;
     gSaveBlock2Ptr->optionsBattleSceneOff = FALSE;
     gSaveBlock2Ptr->regionMapZoom = FALSE;
+    gSaveBlock2Ptr->optionsTurboA = TRUE;
+    gSaveBlock2Ptr->optionsTurboButton = OPTIONS_TURBO_BUTTON_A;
 }
 
 static void ClearPokedexFlags(void)

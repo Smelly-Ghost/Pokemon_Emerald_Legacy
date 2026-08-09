@@ -292,53 +292,63 @@ static void ReadKeys(void)
             gMain.newKeys |= A_BUTTON;
 
         if (JOY_HELD(L_BUTTON))
-        {
             gMain.heldKeys |= A_BUTTON;
-
-            // Turbo A can be disabled independently of L=A button mode via the options menu
-            if (gSaveBlock2Ptr->optionsTurboA)
-            {
-                // Turbo A only on the overworld callback, and not while a menu/prompt is waiting on a deliberate choice
-                if (gMain.callback2 == CB2_Overworld
-                    && !FuncIsActiveTask(Task_ShowStartMenu)
-                    && !IsShopMenuActive()
-                    && !IsScriptMenuWaitingForChoice()
-                    && !IsYesNoMenuActive()
-                    && !IsApprenticeChoosingAnswer()
-                    && !IsScrollableMultichoiceActive()
-                    && !IsDecorationMenuActive()
-                    && !IsSecretBaseRegistryMenuActive())
-                {
-                    // Fire a new 'A' press only once every 8 frames
-                    if (gMain.vblankCounter1 % 8 == 0)
-                    {
-                        gMain.newKeys |= A_BUTTON;
-                    }
-                    else
-                    {
-                        // Ensure the 'A' press is completely cleared on the in-between frames
-                        gMain.newKeys &= ~A_BUTTON;
-                    }
-                }
-                // Slower Turbo A during battles, but not while a deliberate choice is being made
-                else if (gMain.inBattle && !IsPlayerAwaitingBattleChoice())
-                {
-                    // Fire a new 'A' press only once every 16 frames (~3.75 presses/sec)
-                    if (gMain.vblankCounter1 % 16 == 0)
-                    {
-                        gMain.newKeys |= A_BUTTON;
-                    }
-                    else
-                    {
-                        // Ensure the 'A' press is completely cleared on the in-between frames
-                        gMain.newKeys &= ~A_BUTTON;
-                    }
-                }
-            }
-        }
 
         if (JOY_NEW(gMain.watchedKeysMask))
             gMain.watchedKeysPressed = TRUE;
+    }
+
+    // Turbo A: fires on holding whichever button the player picked as their
+    // trigger (OPTIONS_TURBO_BUTTON_[A/L/R]), independent of button mode.
+    // If the trigger is A and L=A mode is active, holding L also triggers it,
+    // since holding L folds A into heldKeys above.
+    {
+        u16 turboTriggerButton = A_BUTTON;
+
+        if (gSaveBlock2Ptr->optionsTurboButton == OPTIONS_TURBO_BUTTON_L)
+            turboTriggerButton = L_BUTTON;
+        else if (gSaveBlock2Ptr->optionsTurboButton == OPTIONS_TURBO_BUTTON_R)
+            turboTriggerButton = R_BUTTON;
+
+        if (gSaveBlock2Ptr->optionsTurboA && JOY_HELD(turboTriggerButton))
+        {
+            // Turbo A only on the overworld callback, and not while a menu/prompt is waiting on a deliberate choice
+            if (gMain.callback2 == CB2_Overworld
+                && !FuncIsActiveTask(Task_ShowStartMenu)
+                && !IsShopMenuActive()
+                && !IsScriptMenuWaitingForChoice()
+                && !IsYesNoMenuActive()
+                && !IsApprenticeChoosingAnswer()
+                && !IsScrollableMultichoiceActive()
+                && !IsDecorationMenuActive()
+                && !IsSecretBaseRegistryMenuActive())
+            {
+                // Fire a new 'A' press only once every 8 frames
+                if (gMain.vblankCounter1 % 8 == 0)
+                {
+                    gMain.newKeys |= A_BUTTON;
+                }
+                else
+                {
+                    // Ensure the 'A' press is completely cleared on the in-between frames
+                    gMain.newKeys &= ~A_BUTTON;
+                }
+            }
+            // Slower Turbo A during battles, but not while a deliberate choice is being made
+            else if (gMain.inBattle && !IsPlayerAwaitingBattleChoice())
+            {
+                // Fire a new 'A' press only once every 16 frames (~3.75 presses/sec)
+                if (gMain.vblankCounter1 % 16 == 0)
+                {
+                    gMain.newKeys |= A_BUTTON;
+                }
+                else
+                {
+                    // Ensure the 'A' press is completely cleared on the in-between frames
+                    gMain.newKeys &= ~A_BUTTON;
+                }
+            }
+        }
     }
 }
 

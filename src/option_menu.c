@@ -3,6 +3,7 @@
 #include "bg.h"
 #include "gpu_regs.h"
 #include "international_string_util.h"
+#include "list_menu.h"
 #include "main.h"
 #include "menu.h"
 #include "palette.h"
@@ -26,6 +27,8 @@
 #define tWindowFrameType data[6]
 #define tTurboA data[7]
 #define tScrollOffset data[8]
+#define tTurboButton data[9]
+#define tArrowTaskId data[10]
 
 enum
 {
@@ -35,6 +38,7 @@ enum
     MENUITEM_SOUND,
     MENUITEM_BUTTONMODE,
     MENUITEM_TURBOA,
+    MENUITEM_TURBOBUTTON,
     MENUITEM_FRAMETYPE,
     MENUITEM_CANCEL,
     MENUITEM_COUNT,
@@ -48,6 +52,8 @@ enum
 
 // Only this many rows fit on screen at once; the list scrolls to reveal the rest.
 #define MAX_VISIBLE_MENU_ITEMS 7
+
+#define TAG_SCROLL_ARROW 5500
 
 static void Task_OptionMenuFadeIn(u8 taskId);
 static void Task_OptionMenuProcessInput(u8 taskId);
@@ -71,6 +77,8 @@ static u8 ButtonMode_ProcessInput(u8 selection);
 static void ButtonMode_DrawChoices(u8 selection, u8 y);
 static u8 TurboA_ProcessInput(u8 selection);
 static void TurboA_DrawChoices(u8 selection, u8 y);
+static u8 TurboButton_ProcessInput(u8 selection);
+static void TurboButton_DrawChoices(u8 selection, u8 y);
 static void DrawHeaderText(void);
 static void DrawOptionMenuTexts(u8 scrollOffset);
 static void DrawBgWindowFrames(void);
@@ -89,6 +97,7 @@ static const u8 *const sOptionMenuItemsNames[MENUITEM_COUNT] =
     [MENUITEM_SOUND]       = gText_Sound,
     [MENUITEM_BUTTONMODE]  = gText_ButtonMode,
     [MENUITEM_TURBOA]      = gText_TurboA,
+    [MENUITEM_TURBOBUTTON] = gText_TurboButton,
     [MENUITEM_FRAMETYPE]   = gText_Frame,
     [MENUITEM_CANCEL]      = gText_OptionMenuCancel,
 };
@@ -183,8 +192,8 @@ void CB2_InitOptionMenu(void)
         DeactivateAllTextPrinters();
         SetGpuReg(REG_OFFSET_WIN0H, 0);
         SetGpuReg(REG_OFFSET_WIN0V, 0);
-        SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG0);
-        SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG1 | WINOUT_WIN01_CLR);
+        SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG0 | WININ_WIN0_OBJ);
+        SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG1 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
         SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG0 | BLDCNT_EFFECT_DARKEN);
         SetGpuReg(REG_OFFSET_BLDALPHA, 0);
         SetGpuReg(REG_OFFSET_BLDY, 4);
@@ -242,9 +251,15 @@ void CB2_InitOptionMenu(void)
         gTasks[taskId].tButtonMode = gSaveBlock2Ptr->optionsButtonMode;
         gTasks[taskId].tWindowFrameType = gSaveBlock2Ptr->optionsWindowFrameType;
         gTasks[taskId].tTurboA = gSaveBlock2Ptr->optionsTurboA;
+        gTasks[taskId].tTurboButton = gSaveBlock2Ptr->optionsTurboButton;
 
         DrawVisibleOptionChoices(taskId);
         HighlightOptionMenuItem(gTasks[taskId].tMenuSelection - gTasks[taskId].tScrollOffset);
+        gTasks[taskId].tArrowTaskId = AddScrollIndicatorArrowPairParameterized(
+            SCROLL_ARROW_UP, 224, 36, 148,
+            MENUITEM_COUNT - MAX_VISIBLE_MENU_ITEMS,
+            TAG_SCROLL_ARROW, TAG_SCROLL_ARROW,
+            (u16 *)&gTasks[taskId].tScrollOffset);
 
         CopyWindowToVram(WIN_OPTIONS, COPYWIN_FULL);
         gMain.state++;
@@ -340,6 +355,13 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             if (previousOption != gTasks[taskId].tTurboA)
                 TurboA_DrawChoices(gTasks[taskId].tTurboA, y);
             break;
+        case MENUITEM_TURBOBUTTON:
+            previousOption = gTasks[taskId].tTurboButton;
+            gTasks[taskId].tTurboButton = TurboButton_ProcessInput(gTasks[taskId].tTurboButton);
+
+            if (previousOption != gTasks[taskId].tTurboButton)
+                TurboButton_DrawChoices(gTasks[taskId].tTurboButton, y);
+            break;
         case MENUITEM_FRAMETYPE:
             previousOption = gTasks[taskId].tWindowFrameType;
             gTasks[taskId].tWindowFrameType = FrameType_ProcessInput(gTasks[taskId].tWindowFrameType);
@@ -400,6 +422,9 @@ static void DrawChoicesForItem(u8 taskId, u8 itemIndex, u8 y)
     case MENUITEM_TURBOA:
         TurboA_DrawChoices(gTasks[taskId].tTurboA, y);
         break;
+    case MENUITEM_TURBOBUTTON:
+        TurboButton_DrawChoices(gTasks[taskId].tTurboButton, y);
+        break;
     case MENUITEM_FRAMETYPE:
         FrameType_DrawChoices(gTasks[taskId].tWindowFrameType, y);
         break;
@@ -424,7 +449,9 @@ static void Task_OptionMenuSave(u8 taskId)
     gSaveBlock2Ptr->optionsButtonMode = gTasks[taskId].tButtonMode;
     gSaveBlock2Ptr->optionsWindowFrameType = gTasks[taskId].tWindowFrameType;
     gSaveBlock2Ptr->optionsTurboA = gTasks[taskId].tTurboA;
+    gSaveBlock2Ptr->optionsTurboButton = gTasks[taskId].tTurboButton;
 
+    RemoveScrollIndicatorArrowPair(gTasks[taskId].tArrowTaskId);
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     gTasks[taskId].func = Task_OptionMenuFadeOut;
 }
@@ -710,6 +737,52 @@ static void TurboA_DrawChoices(u8 selection, u8 y)
 
     DrawOptionMenuChoice(gText_BattleSceneOn, 104, y, styles[1]);
     DrawOptionMenuChoice(gText_BattleSceneOff, GetStringRightAlignXOffset(FONT_NORMAL, gText_BattleSceneOff, 198), y, styles[0]);
+}
+
+static u8 TurboButton_ProcessInput(u8 selection)
+{
+    if (JOY_NEW(DPAD_RIGHT))
+    {
+        if (selection <= 1)
+            selection++;
+        else
+            selection = 0;
+
+        sArrowPressed = TRUE;
+    }
+    if (JOY_NEW(DPAD_LEFT))
+    {
+        if (selection != 0)
+            selection--;
+        else
+            selection = 2;
+
+        sArrowPressed = TRUE;
+    }
+    return selection;
+}
+
+static void TurboButton_DrawChoices(u8 selection, u8 y)
+{
+    s32 widthA, widthL, widthR, xL;
+    u8 styles[3];
+
+    styles[0] = 0;
+    styles[1] = 0;
+    styles[2] = 0;
+    styles[selection] = 1;
+
+    DrawOptionMenuChoice(gText_TurboButtonA, 104, y, styles[OPTIONS_TURBO_BUTTON_A]);
+
+    widthA = GetStringWidth(FONT_NORMAL, gText_TurboButtonA, 0);
+    widthL = GetStringWidth(FONT_NORMAL, gText_TurboButtonL, 0);
+    widthR = GetStringWidth(FONT_NORMAL, gText_TurboButtonR, 0);
+
+    widthL -= 94;
+    xL = (widthA - widthL - widthR) / 2 + 104;
+    DrawOptionMenuChoice(gText_TurboButtonL, xL, y, styles[OPTIONS_TURBO_BUTTON_L]);
+
+    DrawOptionMenuChoice(gText_TurboButtonR, GetStringRightAlignXOffset(FONT_NORMAL, gText_TurboButtonR, 198), y, styles[OPTIONS_TURBO_BUTTON_R]);
 }
 
 static void DrawHeaderText(void)

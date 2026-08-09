@@ -1129,6 +1129,13 @@ static void GoToSecretBasePCRegisterMenu(u8 taskId)
 #undef tActionWindowId
 #undef tArrowTaskId
 
+bool8 IsSecretBaseRegistryMenuActive(void)
+{
+    return FuncIsActiveTask(Task_ShowSecretBaseRegistryMenu)
+        || FuncIsActiveTask(HandleRegistryMenuInput)
+        || FuncIsActiveTask(HandleRegistryMenuActionsInput);
+}
+
 static u8 GetSecretBaseOwnerType(u8 secretBaseIdx)
 {
     return (gSaveBlock1Ptr->secretBases[secretBaseIdx].trainerId[0] % 5)

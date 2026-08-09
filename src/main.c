@@ -23,6 +23,15 @@
 #include "intro.h"
 #include "main.h"
 #include "trainer_hill.h"
+#include "task.h"
+#include "start_menu.h"
+#include "shop.h"
+#include "script_menu.h"
+#include "menu_helpers.h"
+#include "apprentice.h"
+#include "field_specials.h"
+#include "decoration.h"
+#include "secret_base.h"
 #include "constants/rgb.h"
 
 static void VBlankIntr(void);
@@ -286,8 +295,16 @@ static void ReadKeys(void)
         {
             gMain.heldKeys |= A_BUTTON;
 
-            // Turbo A only on the overworld callback
-            if (gMain.callback2 == CB2_Overworld)
+            // Turbo A only on the overworld callback, and not while a menu/prompt is waiting on a deliberate choice
+            if (gMain.callback2 == CB2_Overworld
+                && !FuncIsActiveTask(Task_ShowStartMenu)
+                && !IsShopMenuActive()
+                && !IsScriptMenuWaitingForChoice()
+                && !IsYesNoMenuActive()
+                && !IsApprenticeChoosingAnswer()
+                && !IsScrollableMultichoiceActive()
+                && !IsDecorationMenuActive()
+                && !IsSecretBaseRegistryMenuActive())
             {
                 // Fire a new 'A' press only once every 8 frames
                 if (gMain.vblankCounter1 % 8 == 0)

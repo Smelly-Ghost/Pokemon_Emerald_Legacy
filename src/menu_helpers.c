@@ -176,6 +176,11 @@ static void Task_CallYesOrNoCallback(u8 taskId)
     }
 }
 
+bool8 IsYesNoMenuActive(void)
+{
+    return FuncIsActiveTask(Task_CallYesOrNoCallback);
+}
+
 // Returns TRUE if the quantity was changed, FALSE if it remained the same
 bool8 AdjustQuantityAccordingToDPadInput(s16 *quantity, u16 max)
 {

@@ -685,6 +685,11 @@ static void Task_ChooseAnswer(u8 taskId)
     ScriptContext_Enable();
 }
 
+bool8 IsApprenticeChoosingAnswer(void)
+{
+    return FuncIsActiveTask(Task_ChooseAnswer);
+}
+
 static u8 CreateAndShowWindow(u8 left, u8 top, u8 width, u8 height)
 {
     u8 windowId;

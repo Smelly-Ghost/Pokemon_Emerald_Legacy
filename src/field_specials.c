@@ -2756,6 +2756,11 @@ static void CloseScrollableMultichoice(u8 taskId)
     ScriptContext_Enable();
 }
 
+bool8 IsScrollableMultichoiceActive(void)
+{
+    return FuncIsActiveTask(ScrollableMultichoice_ProcessInput);
+}
+
 // Never run, tKeepOpenAfterSelect is FALSE for all scrollable multichoices.
 static void Task_ScrollableMultichoice_WaitReturnToList(u8 taskId)
 {

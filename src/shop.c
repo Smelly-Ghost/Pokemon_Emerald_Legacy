@@ -436,6 +436,11 @@ void CB2_ExitSellMenu(void)
     SetMainCallback2(CB2_ReturnToField);
 }
 
+bool8 IsShopMenuActive(void)
+{
+    return FuncIsActiveTask(Task_ShopMenu);
+}
+
 static void Task_HandleShopMenuQuit(u8 taskId)
 {
     ClearStdWindowAndFrameToTransparent(sMartInfo.windowId, 2); // Incorrect use, making it not copy it to vram.

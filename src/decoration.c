@@ -2735,3 +2735,18 @@ static void TossDecoration(u8 taskId)
     StringExpandPlaceholders(gStringVar4, gText_DecorationThrownAway);
     DisplayItemMessageOnField(taskId, gStringVar4, ReturnToDecorationItemsAfterInvalidSelection);
 }
+
+bool8 IsDecorationMenuActive(void)
+{
+    return FuncIsActiveTask(HandleDecorationActionsMenuInput)
+        || FuncIsActiveTask(HandleDecorationCategoriesMenuInput)
+        || FuncIsActiveTask(HandleDecorationItemsMenuInput)
+        || FuncIsActiveTask(Task_ShowDecorationItemsWindow)
+        || FuncIsActiveTask(Task_InitDecorationItemsWindow)
+        || FuncIsActiveTask(Task_SelectLocation)
+        || FuncIsActiveTask(Task_PlaceDecoration)
+        || FuncIsActiveTask(Task_PutAwayDecoration)
+        || FuncIsActiveTask(Task_ContinuePuttingAwayDecorations)
+        || FuncIsActiveTask(Task_StopPuttingAwayDecorations)
+        || FuncIsActiveTask(Task_ReinitializeDecorationMenuHandler);
+}

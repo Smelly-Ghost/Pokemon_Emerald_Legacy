@@ -763,3 +763,10 @@ int ScriptMenu_AdjustLeftCoordFromWidth(int left, int width)
 
     return adjustedLeft;
 }
+
+bool8 IsScriptMenuWaitingForChoice(void)
+{
+    return FuncIsActiveTask(Task_HandleYesNoInput)
+        || FuncIsActiveTask(Task_HandleMultichoiceInput)
+        || FuncIsActiveTask(Task_HandleMultichoiceGridInput);
+}
